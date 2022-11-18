@@ -1,7 +1,7 @@
 ---
-title: "'Una nueva estimación objetiva de la dificultad técnica de una vídeo-colonoscopía con intubación cecal: The Argentina Brief Colonoscopy Difficulty (ABCD) score"
-author: "Gabriela Martinez, Miguel Puga Tejada, Jesus"
-date: "26/10/2022"
+title: "\"Una nueva estimación objetiva de la dificultad técnica de una vídeo-colonoscopía con intubación cecal: The Argentina Brief Colonoscopy Difficulty (ABCD) score\""
+author: "Gabriela Martinez, Miguel Puga Tejada, Jesus Zapata"
+date: "Last edited `r format(Sys.time(), '%d %B %Y')"
 output:
   html_document:
     toc: yes
@@ -20,10 +20,12 @@ knitr::opts_chunk$set(warning = FALSE,
                       message = FALSE)
 ```
 
-```{r setup, include=FALSE}
+```{r librerias, include=FALSE}
+#install.packages("cowplot")
 library(readxl)
 library(table1)
-library(samplingbook) 
+library(samplingbook)
+library(GGally)
 library(tidyverse)
 library(lubridate)
 library(arsenal)
@@ -40,75 +42,84 @@ library(leaps)
 library(VGAM)
 library(hms)
 library(descr)
-
+library(Hmisc)
+library(VIM)
+library(randomForest)
+library(ggeffects)
+library(sjPlot)
+library(visreg)
+library(glmnet)
+library(bestglm)
+library(caret)
+library(pomcheckr)
+library(VGAM)
+library(emmeans)
+library(gtsummary)
+library(bestglm)
+library(caret)
+library(MuMIn)
+library(ordinalForest)
+library(ggplot2)
+library(nlme)
+library(OddsPlotty)
+library(pROC)
+library(rstatix)
+library(ModelMetrics)
+library(performance)
+library(verification)
+library(RVAideMemoire)
+library(cowplot)
+library(reshape2)
 ```
 
-##**Introduccion**
+# **Introduccion**
 
-|  La vídeo-colonoscopia (VCC) es el procedimiento de endoscopía digestiva más frecuentemente realizado a nivel mundial. Una VCC está indicada en el cribado de cáncer colorrectal (CCR), vigilancia de distintas preexistencias, abordaje diagnóstico en pacientes sintomáticos y con distintos fines terapéuticos. La detección de lesiones neoplásicas es un objetivo estándar [1]. Para la detección de esta y otras lesiones, es importante una VCC de alta calidad. Los indicadores de calidad de una VCC incluyen la preparación intestinal (objetivamente estimable a través de la Boston Bowel Preparation Score, BBPS) [2], una VCC completa en términos de intubación cecal, y un tiempo de retirada mayor a 6 – 10 minutos [1]. 
-|  Existen situaciones en donde la intubación cecal no corresponde, como frente a una  estenosis de distinto origen, características anatómicas del colon [3], cambios hemodinámicos intra-VCC, entre otros. Fuera de situaciones semejantes, la intubación cecal debe ser una meta [1]. Sin embargo, esta puede representar dificultad para el endoscopista, recurriendo progresivamente a técnicas como compresión abdominal, rotación postural, o cambio de endoscopista [4,5]. Esto puede aumentar el tiempo de intubación cecal (>10 minutos) [6], uso de anestesia, dolor abdominal post-VCC, e incluso lesiones inadvertidas [7]. 
-|  Hasta momento no existe una definición estandarizada de dificultad técnica de una VCC completa en términos de intubación cecal. Existen escalas como la Difficult Colonoscopy Score (DCS), la cual considera los factores pre-VCC edad, índice de masa corporal (IMC), calidad de sueño, así como la experiencia del endoscopista [8]. No obstante, ninguna de estas herramientas definen objetivamente la dificultad técnica de una VCC.
-|  Describir la frecuencia de técnicas adicionales para lograr la intubación cecal en una muestra grande de pacientes argentinos atendidos en distintos centros, en quienes se realizará VCC, a fin de desarrollar una nueva escala para evaluar la dificultad técnica de la misma.
+&nbsp;&nbsp;&nbsp;&nbsp;La vídeo-colonoscopia (VCC) es el procedimiento de endoscopía digestiva más frecuentemente realizado a nivel mundial. Una VCC está indicada en el cribado de cáncer colorrectal (CCR), vigilancia de distintas preexistencias, abordaje diagnóstico en pacientes sintomáticos y con distintos fines terapéuticos.<br>  
+&nbsp;&nbsp;&nbsp;&nbsp;La intubación cecal debe ser una meta durante el procedimiento. Sin embargo, esta puede representar dificultad para el endoscopista, recurriendo progresivamente a técnicas como compresión abdominal, rotación postural, o cambio de endoscopista [4,5]. Esto puede aumentar el tiempo de intubación cecal (>10 minutos) [6], uso de anestesia, dolor abdominal post-VCC, e incluso lesiones inadvertidas [7].<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Hasta momento no existe una definición estandarizada de dificultad técnica de una VCC completa en términos de intubación cecal. Existen escalas como la Difficult Colonoscopy Score (DCS), la cual considera los factores pre-VCC edad, índice de masa corporal (IMC), calidad de sueño, así como la experiencia del endoscopista [8]. No obstante, ninguna de estas herramientas definen objetivamente la dificultad técnica de una VCC.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;El objetivo de este estudio es: describir la frecuencia de técnicas adicionales para lograr la intubación cecal en una muestra grande de pacientes argentinos atendidos en distintos centros, en quienes se realizará VCC, a fin de desarrollar una nueva escala para evaluar la dificultad técnica de la misma.<br>
 
-##**Metodos**
-|  El presente es un estudio multicentrico observacional, analítico, transversal, de recuperación prospectiva [9]. 
-|  Se llevo a cabo en pacientes referidos al servicio de Endoscopía del Hospital Nacional Profesor Alejandro Posadas (HNPAP; El Palomar, provincia de Buenos Aires, Argentina), del Instituto de Gastroenterología y Endoscopía de Avanzada (IGEA; Bahía Blanca, provincia de Buenos Aires, Argentina) y del Hospital Universitario Austral (HUA; El Pilar, provincia de Buenos Aires, Argentina), desde julio a diciembre del 2022. 
-|  Se incluyeron pacientes de ambos géneros, mayores de 18 años, con indicación de VCC debido a cribado de CCR, vigilancia de distintas preexistencias, abordaje diagnóstico en pacientes sintomáticos. En aquellos pacientes referidos para VCC con fines terapéuticos, fueron incluidos siempre y cuando haya la indicación clínica de realizar una VCC completa. 
-|  Criterios de exclusión: no se incluyeron aquellos pacientes en quienes se haya realizado una VCC previa en el mismo centro participante en los últimos tres meses; Boston Bowel Preparation Score (BBPS) ≤1 en cualquier segmento colónico (colon ascendente, transverso y/o descendente); cualquier situación que justifique no realizar VCC completa(estenosis colorrectal, diverticulitis, indicación de RSC para valorar CU), o inestabilidad hemodinámica de cualquier tipo, coagulopatia no controlada o fallo renal o hepatico.
-|  Un grupo de gastroenterologos expertos desarrollo la escala denominada *“Argentina Brief Colonoscopy Difficulty”*, abreviado como ABCD. Esta cuenta con cuatro dimensiones:
-|  Compresión abdominal o *“Abdominal compression”*.
-|  Rotación postural o *“Body rotation”*
-|  Cambio del endoscopista o *“Change of endoscopist”*
-|  Intubación cecal o *“Declined caecal intubation”*
-|  Todos los pacientes participantes serán encaminados a una VCC en manos de endoscopistas previamente entrenados, la preparación intestinal se llevo a cabo con diferentes soluciones, según la discreción asistencial del médico tratante. Tras sedación profunda mediante administración intravenosa de propofol, fentanilo y/o midazolam, se realizó VCC asistida por agua [12], empleando un endoscopio de alta definición (high-definition, HD) con luz blanca (white-light, WL). La marca comercial del colonoscopio diferirá entre los centros participantes.
-|  Se recopilo información que, están tradicionalmente asociada para con la dificultad de una VCC completa: datos de filiación, edad, sexo, antropometría, historia de cirugías digestivas, hernias/eventraciones, antecedente de VCC incompleta, paciente ambulatorio u hospitalizado, indicación de la VCC, indicación simultánea a una vídeo-endoscopía digestiva alta (VEDA), momento de la jornada en que se realiza la VCC y preparación utilizada (Tabla 2A y 2B). 
-|  Dificultad técnica de VCC completa. Condiciendo con las dimensiones de la escala ABCD, se documentaron los desenlaces técnicos durante la realización de una VCC hasta completarla, o su intento (Tabla 2C):
-1. Necesidad de compresión abdominal;
-2.	Necesidad de al menos una rotación postural;
-3.	Número de endoscopistas que participaron hasta la intubación cecal, con su respectiva curva de aprendizaje (competente/junior vs. experto/senior);
+# **Metodos**
+&nbsp;&nbsp;&nbsp;&nbsp;El presente es un estudio multicentrico observacional, analítico, transversal, de recuperación prospectiva [9].<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Se llevo a cabo en pacientes referidos al servicio de Endoscopía del Hospital Nacional Profesor Alejandro Posadas (HNPAP; El Palomar, provincia de Buenos Aires, Argentina), del Instituto de Gastroenterología y Endoscopía de Avanzada (IGEA; Bahía Blanca, provincia de Buenos Aires, Argentina) y del Hospital Universitario Austral (HUA; El Pilar, provincia de Buenos Aires, Argentina), desde julio a diciembre del 2022.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Se incluyeron pacientes de ambos géneros, mayores de 18 años, con indicación de VCC debido a cribado de CCR, vigilancia de distintas preexistencias, abordaje diagnóstico en pacientes sintomáticos. En aquellos pacientes referidos para VCC con fines terapéuticos, fueron incluidos siempre y cuando haya la indicación clínica de realizar una VCC completa.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Criterios de exclusión: no se incluyeron aquellos pacientes en quienes se haya realizado una VCC previa en el mismo centro participante en los últimos tres meses; Boston Bowel Preparation Score (BBPS) ≤1 en cualquier segmento colónico (colon ascendente, transverso y/o descendente); cualquier situación que justifique no realizar VCC completa(estenosis colorrectal, diverticulitis, indicación de RSC para valorar CU), o inestabilidad hemodinámica de cualquier tipo, coagulopatia no controlada o fallo renal o hepatico.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Un grupo de gastroenterologos expertos desarrollo la escala denominada *“Argentina Brief Colonoscopy Difficulty”*, abreviado como ABCD. Esta cuenta con cuatro dimensiones:<br>
+
+1. Compresión abdominal o *“Abdominal compression”*.<br>
+2. Rotación postural o *“Body rotation”*<br>
+3. Cambio del endoscopista o *“Change of endoscopist”*<br>
+4. Intubación cecal o *“Declined caecal intubation”*
+
+&nbsp;&nbsp;&nbsp;&nbsp;Todos los pacientes se re alizaron una VCC en manos de endoscopistas previamente entrenados, la preparación intestinal se llevo a cabo con diferentes soluciones, según la discreción asistencial del médico tratante. Tras sedación profunda mediante administración intravenosa de propofol, fentanilo y/o midazolam, se realizó VCC asistida por agua [12], empleando un endoscopio de alta definición (high-definition, HD) con luz blanca (white-light, WL).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Se recopilo información que, están tradicionalmente asociada para con la dificultad de una VCC completa: datos de filiación, edad, sexo, antropometría, historia de cirugías digestivas, hernias/eventraciones, antecedente de VCC incompleta, paciente ambulatorio u hospitalizado, indicación de la VCC, indicación simultánea a una vídeo-endoscopía digestiva alta (VEDA), momento de la jornada en que se realiza la VCC y preparación utilizada.<br> 
+&nbsp;&nbsp;&nbsp;&nbsp;Dificultad técnica de VCC completa. Condiciendo con las dimensiones de la escala ABCD, se documentaron los desenlaces técnicos durante la realización de una VCC hasta completarla, o su intento:<br>
+1. Necesidad de compresión abdominal.<br>
+2.	Necesidad de al menos una rotación postural.<br>
+3.	Número de endoscopistas que participaron hasta la intubación cecal, con su respectiva curva de aprendizaje (competente/junior vs. experto/senior).<br>
 4.	Necesidad de reiniciar VCC (independientemente del endoscopista responsable);
-5.	Intubación cecal o deserción tras varios intentos. 
-V) Desenlaces secundarios. Se consideró las siguientes circunstanciales a tomar una vez alcanzada la intubación cecal (Tabla 2D): 
-6.	Tiempo de entrada: Tiempo (mm:ss) desde la inserción del colonoscopio en el margen anal, hasta la intubación cecal (o su deserción tras varios intentos). No se considerará el tiempo requerido para la toma de biopsia o terapéutico.
-7.	Tiempo de salida: Tiempo (mm:ss) desde la intubación cecal (o su deserción), y el retorno al margen anal después de evaluar completamente la mucosa colónica [7]. No se considerará el tiempo requerido para la toma de biopsia o terapéutico. 
-8.	Consumo de anestésicos: Dosis de propofol (mg), midazolam (mg) y/o fentanilo (g) utilizada durante la VCC, de acuerdo con el registro de anestesia.
-9.	Hallazgos a la VCC: A describir los hallazgos encontrados durante la VCC. Ej: pólipos extraídos, divertículos, signos de enfermedad inflamatoria intestinal, etc.  
-10	Dolor post-VCC: Nivel de dolor descrito por el paciente una hora después de la colonoscopia. Un médico general ciego a la dificultad o hallazgos de la VCC le preguntará al paciente sobre el nivel de dolor de 1 (uno) a 10 (diez), mostrando la escala visual análoga (EVA) de calificación de dolor facial de Wong-Baker.
-VI) Recuperación de la información. La información será recuperada por los distintos centros participantes a través de un formulario prediseñado en la plataforma SurveyMonkey
+5.	Intubación cecal o deserción tras varios intentos.<br> 
+&nbsp;&nbsp;&nbsp;&nbsp;Desenlaces secundarios. Se consideró las siguientes circunstanciales a tomar una vez alcanzada la intubación cecal:<br> 
+6.	Tiempo de entrada: Tiempo (mm:ss) desde la inserción del colonoscopio en el margen anal, hasta la intubación cecal (o su deserción tras varios intentos). No se considerará el tiempo requerido para la toma de biopsia o terapéutico.<br>
+7.	Consumo de anestésicos: Dosis de propofol (mg), midazolam (mg) y/o fentanilo (g) utilizada durante la VCC, de acuerdo con el registro de anestesia.<br>
+8	Dolor post-VCC: Nivel de dolor descrito por el paciente una hora después de la colonoscopia. Un médico general ciego a la dificultad o hallazgos de la VCC le preguntará al paciente sobre el nivel de dolor de 1 (uno) a 10 (diez), mostrando la escala visual análoga (EVA) de calificación de dolor facial de Wong-Baker.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;La información fue recuperada por los distintos centros participantes a través de un formulario prediseñado en la plataforma SurveyMonkey<br>
 
-#**Analisis estadistico**
+## **Analisis estadistico**
 
-|  Se considero un valor P<0.05 como estadísticamente significativo. La base de datos será analizada por un residente de Gastroenterología con ocho años de experiencia en Bioestadística (M.P-T.) empleando la última versión disponible del programa estadístico R (R Foundation for Statistical Computing; Viena, Austria). 
-|  Se realizo un cálculo de la muestra, considerando una frecuencia desconocida, un intervalo de confianza (IC) del 95% y un margen de error del 1%, se estima una muestra no menor a 9603 pacientes entre todos los centros participantes. Como criterio de participación, se solicito a cada centro evaluar la posibilidad de incluir 500 VCC. 
-```{r, echo=T}
-zstar = qnorm(.975) 
-p = 0.5
-E = 0.01
-zstar ^ 2 * p * (1 - p) /  E ^ 2 
-
-e     <- 0.05
-n     <- 1348
-level <- 0.95
-P     <- 0.5
-
-sample.size.prop(e=0.0267, P=0.5, N=Inf, level=0.95)
-
-```
-
-|  Estadística descriptiva. Las variables continuas serán descritas en media (desviación estándar, DE) o mediana (rango intercuartil, RIC), según corresponda su distribución estadística (prueba de Kolmógorov-Smirnov, K-S). Las variables discretas (categóricas) serán descritas en porcentajes/frecuencias, con sus respectivos IC de corresponder. 
-| Estadística inferencial. En base a la puntuación definitiva de ABCD definida al finalizar el estudio, se empleará operadores booleanos para estimar el nivel de dificultad en cada caso (I, II, III y IV). El nivel de dificultad será contrastado vs. características basales, generales de la VCC y desenlaces secundarios, empleando las pruebas de hipótesis respectivas: prueba Kruskal-Wallis en el caso de variables continuas y chi-cuadrado de Pearson en el caso de variables discretas (categóricas). Finalmente se contruyo un modelo de regresion logistica ordinal
+&nbsp;&nbsp;&nbsp;&nbsp;Se considero un valor P<0.05 como estadísticamente significativo. La base de datos será analizada empleando la última versión disponible del programa estadístico R (R Version 4.2.1).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Estadística descriptiva. Las variables continuas serán descritas en media (desviación estándar, DE) o mediana (rango intercuartil, RIC), según corresponda su distribución estadística (prueba de Kolmógorov-Smirnov, K-S). Las variables discretas (categóricas) serán descritas en porcentajes/frecuencias, con sus respectivos IC de corresponder.<br> 
+&nbsp;&nbsp;&nbsp;&nbsp;Estadística inferencial. En base a la puntuación definitiva de ABCD definida al finalizar el estudio, se emplearon operadores booleanos para estimar el nivel de dificultad en cada caso (I, II, III y IV). El nivel de dificultad será contrastado vs. características basales, generales de la VCC y desenlaces secundarios, empleando las pruebas de hipótesis respectivas: prueba Kruskal-Wallis en el caso de variables continuas y chi-cuadrado de Pearson en el caso de variables discretas.<br> (categóricas). Los datos faltantes se trataron con imputacion multiple. Se utilizo *ordinalforest* para el proceso de seleccion de variables. Finalmente se contruyo un modelo mixto de regresion ordinal con *"intitucion"* como variable de efectos aleatorios.<br>
 
 
-```{r, echo=T}
+```{r base, echo=T}
 db_total <- read_excel("C:/Users/gabyt/Downloads/CEECS 2021/taller/abcd_survey_monkey.xlsx", 
-                       na = "No estimable", sheet="db", col_names = TRUE)
-str(db_total)
-db_total <- db_total[-1,]
-db_total <- db_total[,-1:-2]
-db_total <- db_total[,-2:-7]
+                       na = "No estimable", col_names = TRUE)
 
-str(db_total)
-list_total <- c("date","institution","patient",
+db_total<-db_total[,-c(1:9)]
+db_total<-db_total[,-2]
+db_total<-db_total[-1,]
+list_total <- c("institution",
                 "age","gender","height","weight",
                 "digestive_surgery","type_digestive_surgery","hernia",
                 "prior_incomplete_colonoscopy","ambulatory_hospitalised","indication_colonoscopy",
@@ -125,12 +136,17 @@ list_total <- c("date","institution","patient",
                 "type_another_technique",
                 "ileocecal_junction_visualization",
                 "time_outside","bbps_right","bbps_transverse","bbps_left",
-                "sedation","consumption_propofol_mg","consumption_fentanyl_ug","consumption_midazolam_ug",
-                "other_findings","pain_post_colonoscopy","adverse_events")
-colnames(db_total) <- c(list_total)
-db_total$code <- c(53:1946)
+                "sedation","consumption_propofol_mg","consumption_fentanyl_ug","consumption_midazolam_ug","other_findings","pain_post_colonoscopy","adverse_events")
 
-db_total$time_entrance <- as.difftime(db_total$time_entrance,units = "mins")
+colnames(db_total) <- c(list_total)
+
+#write.csv(db_total,"C:/Users/gabyt/Downloads/CEECS 2021/taller/db_total.csv",row.names = F)
+```
+
+```{r basales y generales, echo=TRUE}
+
+db_total$time_entrance <- round(as.difftime(db_total$time_entrance,units = "mins"),digits = 3)
+db_total$time_entrance<-as.numeric(db_total$time_entrance)
 db_total$indication_colonoscopy<-as.factor(db_total$indication_colonoscopy)
 table(db_total$indication_colonoscopy)
 db_total$gender <- ifelse(db_total$gender=="Masculino",0,1)
@@ -155,14 +171,20 @@ db_total$indication_colonoscopy <- ifelse(db_total$indication_colonoscopy=="Scre
 db_total$indication_colonoscopy<-factor(db_total$indication_colonoscopy, levels = c(1,2,3,4),labels = c("screening ccr","seguimiento","diagnostica","terapeutica programado"))
 table(db_total$indication_colonoscopy)
 
+db_total$hernia <- ifelse(db_total$hernia=="No",0,1)
+class(db_total$hernia)
+db_total$hernia<-factor(db_total$hernia,levels = c(0,1),labels = c("no", "si"))
+table(db_total$hernia)
 db_total$preparation <- ifelse(db_total$preparation=="Polietilenglicol (Barex)",1,
                                ifelse(db_total$preparation=="Sulfato de sodio (Sulfodom)",2,
                                       ifelse(db_total$preparation=="Fosfato de sodio (Fosfodom)",3,
-                                             ifelse(db_total$preparation=="Otra (especifique)",4,0))))
+                                             ifelse(db_total$preparation=="Manitol"|
+                                                      db_total$preparation=="Picosulfato de sodio (Novoprep)",4,0))))
+
 
 db_total$preparation<-factor(db_total$preparation,levels = c(1,2,3,4),
                                         labels = c("barex","sulfodom","fosfodom","otra"))
-levels(db_total$preparation)
+table(db_total$preparation)
 
 db_total$schedule <- ifelse(db_total$schedule=="Por la mañana (07:00 - 12:00)",0,1)
 db_total$schedule<-factor(db_total$schedule,levels = c(0,1),labels = c("mañana","tarde"))
@@ -177,23 +199,10 @@ db_total$bbps_right <- as.numeric(db_total$bbps_right)
 db_total$boston_sum <- db_total$bbps_right + db_total$bbps_transverse + db_total$bbps_left
 db_total$boston <- ifelse(db_total$boston_sum>=8 & !is.na(db_total$boston_sum),"Excelente","Bueno")
 db_total$boston<-as.factor(db_total$boston)
-db_total$manual_pressure_more_than_five_seconds <- ifelse(db_total$manual_pressure_more_than_five_seconds=="No",0,
-                                                          ifelse(db_total$manual_pressure_more_than_five_seconds=="Sí. Se pudo progresar en menos de 10 segundos.",1,
-                                                                 ifelse(db_total$manual_pressure_more_than_five_seconds=="Sí. Se pudo progresar, pero en más de 10 segundos.",2,
-                                                                        ifelse(db_total$manual_pressure_more_than_five_seconds=="Sí. Sin embargo, no se logró progresar.",3,
-                                                                               ifelse(db_total$manual_pressure_more_than_five_seconds=="Unsuccessful",4,NA)))))
 
-db_total$manual_pressure_more_than_five_seconds<-factor(db_total$manual_pressure_more_than_five_seconds,levels = c(0,1,2,3,4),labels = c("no","si<10 seg","si>10","si,pero no se progreso","no exitoso"))
-
-db_total$postural_changes <- ifelse(db_total$postural_changes=="No",0,1)
-db_total$postural_changes<-factor(db_total$postural_changes,levels = c(0,1),labels = "no","si")
-
-db_total$operators <- ifelse(db_total$operators=="No",0,1)
-db_total$operators<-factor(db_total$operators,levels = c(0,1),labels = c("no","si"))
-table(db_total$operators)
 db_total$first_operator_type <- ifelse(db_total$first_operator_type=="No experto/junior",0,1)
 db_total$first_operator_type<-factor(db_total$first_operator_type,levels = c(0,1),labels=c("junior","experto"))
-
+table(db_total$first_operator_type)
 db_total$second_operator_type <- ifelse(db_total$second_operator_type=="No experto/junior",0,
                                         ifelse(db_total$second_operator_type=="Experto/senior",1,db_total$second_operator_type))
 
@@ -201,32 +210,47 @@ db_total$second_operator_type<-ifelse(is.na(db_total$second_operator_type),99,db
 
 db_total$second_operator_type<-factor(db_total$second_operator_type,levels = c(0,1,99),labels=c("junior","experto","no necesario"))
 table(db_total$second_operator_type)
-
 ```
 
-```{r,echo=TRUE}
+
+```{r calculo score,echo=TRUE}
+db_total$manual_pressure_more_than_five_seconds <- ifelse(db_total$manual_pressure_more_than_five_seconds=="No",0,
+                                                  ifelse(db_total$manual_pressure_more_than_five_seconds=="Sí. Se pudo progresar en menos de 10 segundos.",1,
+                                                                 ifelse(db_total$manual_pressure_more_than_five_seconds=="Sí. Se pudo progresar, pero en más de 10 segundos.",2,
+                                                                        ifelse(db_total$manual_pressure_more_than_five_seconds=="Sí. Sin embargo, no se logró progresar.",3,NA))))
+
+db_total$manual_pressure_more_than_five_seconds<-factor(db_total$manual_pressure_more_than_five_seconds,levels = c(0,1,2,3),labels = c("no","si<10 seg","si>10","si,pero no se progreso"))
+table(db_total$manual_pressure_more_than_five_seconds,useNA = "ifany")
+
+db_total$postural_changes <- ifelse(db_total$postural_changes=="No",0,ifelse(db_total$postural_changes=="Sí",1,NA))
+db_total$postural_changes<-factor(db_total$postural_changes,levels = c(0,1),labels = c("no","si"))
+table(db_total$postural_changes, useNA = "ifany")
+db_total$operators <- ifelse(db_total$operators=="No",0,1)
+db_total$operators<-factor(db_total$operators,levels = c(0,1),labels = c("no","si"))
+table(db_total$operators)
 
 db_total$restart_within_single_operator <- ifelse(db_total$restart_within_single_operator=="No",0,1)
 db_total$restart_within_single_operator<-factor(db_total$restart_within_single_operator,levels=c(0,1),labels=c("no","si"))
 db_total$restart_within_single_operator
 
+
 db_total$ileocecal_junction_visualization <- ifelse(db_total$ileocecal_junction_visualization=="No",0,1)
+
 db_total$ileocecal_junction_visualization<-factor(db_total$ileocecal_junction_visualization,levels=c(0,1),labels=c("no","si"))
 db_total$ileocecal_junction_visualization
 ```
 
-```{r}
+```{r edadcat,echo=TRUE}
 db_total$age <- as.numeric(db_total$age)
 db_total$age_cat <- cut(db_total$age,
-                  breaks=c(0,18,39,64,Inf),
-                  labels=c("<18 yo",
-                           "18-39 yo",
-                           "40-64 yo",
-                           "â¥65 yo"))
+                  breaks=c(17,39,64,Inf),
+                  labels=c("17-39 años",
+                           "40-64 años",
+                           ">65 años"))
 
+table(db_total$age_cat)
 db_total$height <- as.numeric(db_total$height)
 db_total$weight <- as.numeric(db_total$weight)
-
 db_total$bmi <- db_total$weight/((db_total$height/100)*(db_total$height/100))
 db_total$bmi_cat <- cut(db_total$bmi,
                   breaks=c(0,19.99,24.99,29.99,34.99,Inf),
@@ -234,33 +258,28 @@ db_total$bmi_cat <- cut(db_total$bmi,
                            "Normal weight (20-24.9)",
                            "Obese (25-29.9)",
                            "Overweight I (30-34.99)",
-                           "Overweright II/III (â¥35)"))
+                           "Overweright II/III (>35)"))
 
 ```
 
-```{r, echo=TRUE}
-
+```{r score-pain-propo-institucion, echo=TRUE}
 db_total$pain <- ifelse(db_total$pain_post_colonoscopy>7 & !is.na(db_total$pain_post_colonoscopy),"8-10",
                   ifelse(db_total$pain_post_colonoscopy>2 & !is.na(db_total$pain_post_colonoscopy),"3-7","0-2"))
 
+db_total$pain<-factor(db_total$pain, levels = c("0-2","3-7","8-10"),labels =c("leve","moderado","severo"))
+
 table(db_total$pain)
-db_total$score <- ifelse(db_total$ileocecal_junction_visualization=="no",4,
-                   ifelse(db_total$operators=="si"
-                          |db_total$restart_within_single_operator=="si"
-                          |db_total$manual_pressure_more_than_five_seconds=="no existoso"
-                          |db_total$postural_changes=="si",3, 
-                          ifelse(db_total$manual_pressure_more_than_five_seconds=="si>10",2, 
-                                 ifelse(db_total$manual_pressure_more_than_five_seconds=="si<10 seg",1,0))))
-table(db_total$score)
+db_total$score <- ifelse(db_total$ileocecal_junction_visualization=="no",5,
+                    ifelse(db_total$operators=="si"
+                           |db_total$restart_within_single_operator=="si"
+                           |db_total$manual_pressure_more_than_five_seconds=="si,pero no se progreso"
+                           |db_total$postural_changes=="si",4, 
+                           ifelse(db_total$manual_pressure_more_than_five_seconds=="si>10",3, 
+                                  ifelse(db_total$manual_pressure_more_than_five_seconds=="si<10 seg",2,1))))
 
 
 db_total$score<-as.factor(db_total$score)
 db_total$score<-as.ordered(db_total$score)
-db_total$time_entrance<-round(as.numeric(db_total$time_entrance),digits = 2)
-```
-
-```{r, echo=TRUE}
-#Descriptiva y distribucion de las variables
 
 #SCORE
 
@@ -268,9 +287,30 @@ freq(db_total$score, plot = T)#asimetria izquierda
 
 #INSTITUCION:
 
-table(db_total$institution)
+db_total$institution <- str_trim(str_split(db_total$institution, "-", simplify = TRUE)[,1], side="both")
+
+db_total$institution <- str_remove(db_total$institution, ". Dr. Manzotti Leandro")
+
+instituciones <- str_split(db_total$institution, " ", simplify = TRUE)
+ 
+instituciones2 <- instituciones[2111,]
+instituciones <- instituciones[,(2:9)]
+for (i in 1:2111){
+  instituciones2[i] <- str_trim(paste(instituciones[i,], collapse = " "), side="both")
+}
+
+
+db_total$institution<- instituciones2
+
 db_total$institution<-as.factor(db_total$institution)
 
+table(db_total$institution,useNA = "ifany")
+
+db_total$consumption_propofol_mg<-as.numeric(db_total$consumption_propofol_mg)
+```
+
+```{r distribucion de las variables, echo=TRUE}
+#Distribucion de las variables
 
 #EDAD:
 hist(db_total$age)
@@ -278,108 +318,85 @@ shapiro.test(db_total$age)
 
 #por grupo:
 
-hist(db_total$age[db_total$score=="0"])
 hist(db_total$age[db_total$score=="1"])
 hist(db_total$age[db_total$score=="2"])
 hist(db_total$age[db_total$score=="3"])
 hist(db_total$age[db_total$score=="4"])
+hist(db_total$age[db_total$score=="5"])
 
-shapiro.test(db_total$age[db_total$score=="0"])
 shapiro.test(db_total$age[db_total$score=="1"])
 shapiro.test(db_total$age[db_total$score=="2"])
 shapiro.test(db_total$age[db_total$score=="3"])
-shapiro.test(db_total$age[db_total$score=="4"])#solo este cumple normalidad
+shapiro.test(db_total$age[db_total$score=="4"])
+shapiro.test(db_total$age[db_total$score=="5"])#solo este cumple normalidad
 
-bartlett.test(age~score, data = db_total)# SE CUMPLE IGUALDAD DE VARIANZAS POR BARTLETT y LEVENE
-leveneTest(age~score, data = db_total)
+ggplot(data = db_total, mapping = aes(x=score, y=age))+
+  geom_boxplot(mapping = aes(fill=score))+
+  geom_jitter(size=2, position = position_jitter(width = 0.05))#distribucion similar-->Kruskal
 
 #SEXO
 
 tabla_sexo=tableby(score~notest(gender), data = db_total)
 summary(tabla_sexo, text=T)
 sexo=chisq.test(db_total$gender,db_total$score, correct = T)
-str(sexo)
+
 sexo$expected #cumple
 
 #BMI
 
 hist(db_total$bmi)
 
-hist(db_total$bmi[db_total$score=="0"])
 hist(db_total$bmi[db_total$score=="1"])
 hist(db_total$bmi[db_total$score=="2"])
 hist(db_total$bmi[db_total$score=="3"])
 hist(db_total$bmi[db_total$score=="4"])
+hist(db_total$bmi[db_total$score=="5"])
 
-shapiro.test(db_total$bmi[db_total$score=="0"])
 shapiro.test(db_total$bmi[db_total$score=="1"])
 shapiro.test(db_total$bmi[db_total$score=="2"])
 shapiro.test(db_total$bmi[db_total$score=="3"])
-shapiro.test(db_total$bmi[db_total$score=="4"]) #NO SE CUMPLE NORMALIDAD
+shapiro.test(db_total$bmi[db_total$score=="4"])
+shapiro.test(db_total$bmi[db_total$score=="5"]) #NO SE CUMPLE NORMALIDAD
 
 ggplot(data = db_total, mapping = aes(x=score, y=bmi))+
   geom_boxplot(mapping = aes(fill=score))+
-  geom_jitter(size=2, position = position_jitter(width = 0.05))
+  geom_jitter(size=2, position = position_jitter(width = 0.05))#similar--->Kruskal
 
-bartlett.test(bmi~score, data = db_total)# NO SE CUMPLE IGUALDAD DE VARIANZAS con BARTLETT NI LEVENE
-leveneTest(bmi~score, data = db_total)
-
-#NO SE CUMPLE NORMALIDAD, PERO HAY SIMILAR DITRIBUCION----->Kruskal wallis
-
-#FENTANILO
-# hist(db$consumption_fentanyl_ug)
-# hist(db$consumption_fentanyl_ug[db$score=="0"])
-# hist(db$consumption_fentanyl_ug[db$score=="1"])
-# hist(db$consumption_fentanyl_ug[db$score=="2"])
-# hist(db$consumption_fentanyl_ug[db$score=="3"])
-# hist(db$consumption_fentanyl_ug[db$score=="4"])
-# 
-# shapiro.test(db$consumption_fentanyl_ug[db$score=="0"])
-# shapiro.test(db$consumption_fentanyl_ug[db$score=="1"])
-# shapiro.test(db$consumption_fentanyl_ug[db$score=="2"])
-# shapiro.test(db$consumption_fentanyl_ug[db$score=="3"])
-# shapiro.test(db$consumption_fentanyl_ug[db$score=="4"])
-# 
-# ggplot(db = db, mapping = aes(x=db$score, y=db$consumption_fentanyl_ug))+
-#   geom_boxplot(mapping = aes(fill=db$score))+
-#   geom_jitter(size=2, position = position_jitter(width = 0.05)) #SE PARECEN
-# 
-# ggplot(db, aes(consumption_fentanyl_ug))+
-#   geom_bar(aes(fill=score))# NO CUMPLE NORMALIDAD, IMPRESIONA ASIMETRIA IZQUIERDA
-# 
-# bartlett.test(consumption_fentanyl_ug~score, data = db)#NO SE CUMPLE HOMOCEDASTICIDAD
-# 
 # #Propofol
-# 
-# class(db_total$consumption_midazolam_ug)
-# hist(db_total$consumption_propofol_mg)
-# hist(db_total$consumption_propofol_mg[db$score=="0"])
-# hist(db_total$consumption_propofol_mg[db$score=="1"])
-# hist(db_total$consumption_propofol_mg[db$score=="2"])
-# hist(db_total$consumption_propofol_mg[db$score=="3"])
-# hist(db_total$consumption_propofol_mg[db$score=="4"])
-# 
-# shapiro.test(db$consumption_propofol_mg[db$score=="0"])
-# shapiro.test(db$consumption_propofol_mg[db$score=="1"])
-# shapiro.test(db$consumption_propofol_mg[db$score=="2"])
-# shapiro.test(db$consumption_propofol_mg[db$score=="3"])
-# shapiro.test(db$consumption_propofol_mg[db$score=="4"])#la unica que cumple normalidad
-# 
-# ggplot(db = db, mapping = aes(x=db$score, y=db$consumption_propofol_mg))+
-#   geom_boxplot(mapping = aes(fill=db$score))+
-#   geom_jitter(size=2, position = position_jitter(width = 0.05)) #SE PARECEN
-# 
-# ggplot(db, aes(consumption_propofol_mg))+
-#   geom_bar(aes(fill=score))# parece asimetia hacia la izquierda
-# 
-# bartlett.test(consumption_propofol_mg~score, data = db) #no cumple homocedasticidad
 
-#NO SE CUMPLE NORMALIDAD---> KRUSKAL
+class(db_total$consumption_midazolam_ug)
+db_total$consumption_propofol_mg<-as.numeric(db_total$consumption_propofol_mg)
+hist(db_total$consumption_propofol_mg)
+hist(db_total$consumption_propofol_mg[db_total$score=="1"])
+hist(db_total$consumption_propofol_mg[db_total$score=="2"])
+hist(db_total$consumption_propofol_mg[db_total$score=="3"])
+hist(db_total$consumption_propofol_mg[db_total$score=="4"])
+hist(db_total$consumption_propofol_mg[db_total$score=="5"])
+ 
+shapiro.test(db_total$consumption_propofol_mg[db_total$score=="1"])
+shapiro.test(db_total$consumption_propofol_mg[db_total$score=="2"])
+shapiro.test(db_total$consumption_propofol_mg[db_total$score=="3"])
+shapiro.test(db_total$consumption_propofol_mg[db_total$score=="4"])
+shapiro.test(db_total$consumption_propofol_mg[db_total$score=="5"])
+#no cumple normalidad
 
-#DOLOR
+ggplot(data= db_total, mapping = aes(x=score, y=consumption_propofol_mg))+
+geom_boxplot(mapping = aes(fill=score))+
+geom_jitter(size=2, position = position_jitter(width = 0.05)) #las distribuciones son similares--->KRUSKAL
+
+#DOLOR categ
+
+ggplot(data= db_total, mapping = aes(x=score, y=pain))+
+geom_boxplot(mapping = aes(fill=score))+geom_jitter(size=2, position = position_jitter(width = 0.05))
+
 chi_dolor<-chisq.test(db_total$pain, db_total$score)
-chi_dolor$expected# NO CUMPLE, FISHER?
+chi_dolor$expected# NO CUMPLE, mejor trend Cochran o mediana para dolor sin categorizar
+class(db_total$score)
+dolor_score<-table(db_total$pain, db_total$score)
 
+trend<-prop_trend_test(dolor_score)
+
+mood.medtest(db_total$score,db_total$pain_post_colonoscopy,exact = F)
 
 #BMI_CATEGORICO
 class(db_total$bmi_cat)
@@ -430,57 +447,91 @@ chi_visualizacion$expected
 ggplot(db_total, aes(ileocecal_junction_visualization))+
   geom_bar(aes(fill=score))
 
+#CAMBIOS POSTURALES
+chi_post<-chisq.test(db_total$postural_changes,db_total$score)
+chi_post$expected
+
 #time entrance
 
-hist(db_total$time_entrance[db_total$score=="0"])
 hist(db_total$time_entrance[db_total$score=="1"])
 hist(db_total$time_entrance[db_total$score=="2"])
 hist(db_total$time_entrance[db_total$score=="3"])
 hist(db_total$time_entrance[db_total$score=="4"])
+hist(db_total$time_entrance[db_total$score=="5"])
 
-shapiro.test(db_total$time_entrance[db_total$score=="0"])
 shapiro.test(db_total$time_entrance[db_total$score=="1"])
 shapiro.test(db_total$time_entrance[db_total$score=="2"])
 shapiro.test(db_total$time_entrance[db_total$score=="3"])
-shapiro.test(db_total$time_entrance[db_total$score=="4"])#no cumple normalidad
-
-bartlett.test(time_entrance~score, data = db_total)# NO SE CUMPLE IGUALDAD DE VARIANZAS con BARTLETT NI LEVENE
-leveneTest(time_entrance~score, data = db_total)
+shapiro.test(db_total$time_entrance[db_total$score=="4"])
+shapiro.test(db_total$time_entrance[db_total$score=="5"])#no cumple normalidad
 
 ggplot(data = db_total, mapping = aes(x=score, y=time_entrance))+
   geom_boxplot(mapping = aes(fill=score))+
-  geom_jitter(size=2, position = position_jitter(width = 0.05))
+  geom_jitter(size=2, position = position_jitter(width = 0.05))#similar distribucion
 
-str(db_total)
+#institucion:
+
+ggplot(db_total, aes(institution))+
+  geom_bar(aes(fill=score))
+table(db_total$institution,db_total$score)
+
+chi_hernia<-chisq.test(db_total$hernia,db_total$score)
+chi_hernia$expected
 ```
 
 # *Tabla 1*
-```{r}
+```{r tabla 1, echo=T,results="asis"}
 #Tabla1:
 
 tabla_1<-tableby(score~kwt(age)+chisq(gender)+
-                 kwt(bmi)+chisq(digestive_surgery)+
-                 fe(ambulatory_hospitalised)+
+                 kwt(bmi)+chisq(digestive_surgery)+fe(hernia)+
                  fe(prior_incomplete_colonoscopy)+
+                 fe(ambulatory_hospitalised)+
                  chisq(indication_colonoscopy)+
                  chisq(preparation)+
-                 chisq(operators)+
                  chisq(first_operator_type)+
                  chisq(second_operator_type)+
-                 chisq(restart_within_single_operator)+
                  chisq(schedule)+chisq(veda_vcc_conjunta)+
-                 chisq(postural_changes)+chisq(manual_pressure_more_than_five_seconds)+
-                 chisq(ileocecal_junction_visualization)+chisq(boston)+
-                 kwt(time_entrance)+chisq(pain),data=db_total, numeric.stats=c("Nmiss","median","q1q3"),na.tableby(TRUE))
+                 chisq(boston),data=db_total, numeric.stats=c("median","q1q3"),na.tableby(TRUE))
 
-summary(tabla_1, text=T)
+mylabels<-list(age="Edad",gender="Genero",bmi="IMC",digestive_surgery="Cirugia abdominal",hernia="Antecedentes de hernia",prior_incomplete_colonoscopy="Colonoscopia previa incompleta",ambulatory_hospitalised="Ambulatorio u hospitalizado",indication_colonoscopy="Indicacion de la colonoscopia",preparation="Preparacion colonica",operators="Cambio de endoscopista",first_operator_type="tipo de 1° operador",second_operator_type="Tipo de 2° operador",restart_within_single_operator="Reiniciar con otro operador",schedule="Momento de realizacion del procedimiento",veda_vcc_conjunta="VEDA- VCC conjunta",postural_changes="Cambios posturales",manual_pressure_more_than_five_seconds="Compresion abdominal mas de 5 seg",ileocecal_junction_visualization="Visualizacion del ciego",postural_changes="Cambios posturales", boston="Boston",time_entrance="Tiempo de entrada en min",pain="Dolor",consumption_propofol_mg="Consumo de propofol(mg)")
 
-#falta incluir consumo de fentanilo y propofol e institucion
+sum_tabla1<-summary(tabla_1, text=T,title = "Tabla 1. Caracteristicas basales y generales de la VCC segun categorias del score ABCD" , pfootnote=TRUE,labelTranslations =mylabels, digits = 2)
+sum_tabla1
+#write2word(sum_tabla1, "C:/Users/gabyt/Downloads/CEECS 2021/taller/tabla1.doc")
 ```
+
+#*Tabla 2*
+```{r tabla 2, echo=T,results="asis" }
+
+tabla_vcc<-tableby(score~chisq(operators)
+                   +chisq(restart_within_single_operator)+
+                     +chisq(manual_pressure_more_than_five_seconds)
+                   +chisq(ileocecal_junction_visualization)
+                   +chisq(postural_changes),data=db_total,
+                   numeric.stats=c("Nmiss","median","q1q3"),na.tableby(TRUE))
+
+sum_tabla2<-summary(tabla_vcc, text=T,title = "Tabla 2. Caracteristicas tecnicas segun categorias del score ABCD" , pfootnote=TRUE,labelTranslations =mylabels, digits = 2) 
+sum_tabla2
+#write2word(sum_tabla2, "C:/Users/gabyt/Downloads/CEECS 2021/taller/tabla2.doc")
+```
+
+#*Tabla desenlaces sec*
+```{r tabla 3, echo=T,results="asis"}
+tabla_sec<-tableby(score~kwt(time_entrance)+as.ordered(pain)+kwt(consumption_propofol_mg),data=db_total,
+                   numeric.stats=c("Nmiss","median","q1q3"),na.tableby(TRUE))
+
+sum_tabla_sec<-summary(tabla_sec, text=T,title = "Tabla 3. Desenlaces secundarios segun categorias del score ABCD" , pfootnote=TRUE,labelTranslations =mylabels, digits = 2) 
+sum_tabla_sec
+#write2word(sum_tabla_sec, "C:/Users/gabyt/Downloads/CEECS 2021/taller/tabla3.doc")
+```
+
 
 # *Tratamiento de los datos faltantes*
 ```{r, echo=T}
 #Evaluacion de los datos faltantes
+
+#subset para imputar, las variables pain y propofol las vamos a usar luego como outcome sec
 
 vis_miss(db_total,sort=TRUE)
 vis_miss(db_total,cluster = TRUE)
@@ -497,65 +548,346 @@ pct_miss_case(db_total)#proporcion de filas con algun dato faltante
 ```
 
 # *Imputacion de datos faltantes*
-```{r, echo=TRUE}
-#subset para imputar, las variables pain, consumo de fentanilo y midazolam las dejamos como outcomes secundarios
+```{r subset para imputar, echo=TRUE,cache=TRUE}
+#subset para imputar, las variables pain, sedacion y consumo de fentanilo las vamos a dejar para una 2da instancia como outcomes secundarios
 
-db1<-subset(db_total,select=c(age,gender,bmi,digestive_surgery,prior_incomplete_colonoscopy,
-                          ambulatory_hospitalised,preparation,schedule,veda_vcc_conjunta,time_entrance,operators,second_operator_type,boston,score))
+db1<-subset(db_total,select=c(age,gender,bmi,digestive_surgery,prior_incomplete_colonoscopy,hernia,institution,ambulatory_hospitalised,preparation,indication_colonoscopy,schedule,veda_vcc_conjunta,time_entrance,first_operator_type,boston,consumption_propofol_mg,pain,score))
 
-str(db1)
+#Datos faltantes
 
-vis_miss(db1,sort=TRUE)# un 1% de los datos seran imputados para evaluar el outcome principal
+vis_miss(db1,sort=TRUE)
+gg_miss_var(db1)#1%
+aggr_plot <- aggr(db1, col=c('blue','red'), numbers=TRUE, sortVars=TRUE, labels=names(db1), cex.axis=.7, gap=3, ylab=c("Histograma de missing data","Patron"))
+
+#veamos proporcion real de faltantes
+
+db1_miss <- na.omit(db1)
+n_inicial <- nrow(db1)
+n_final <- nrow(db1_miss)
+(n_inicial- n_final)/n_inicial# 11%
+
+#imputacion multiple
 
 base_imputada <- mice (db1, m = 10,defaultMethod = c("pmm","logreg", "polyreg", "polr"), maxit = 5,printFlag = F, seed = 123)
-summary(base_imputada)
+summary(base_imputada)#genero 10 muestras con imputaciones posibles
+base_imputada$imp$score#muestra las observaciones q se imputaron
 densityplot(base_imputada)
+
+
+fit_ordinal <- with(base_imputada,clm(score~age+gender+bmi+prior_incomplete_colonoscopy+ambulatory_hospitalised+preparation+schedule+veda_vcc_conjunta+time_entrance+first_operator_type+boston, link = "logit"))
+print(pool(fit_ordinal))
+summary(pool(fit_ordinal))
+fit_ordinal$analyses #genero 10 modelos con las bases imputadas
+
+fit_ordinal$analyses[[5]]# podemos elegir uno y trabajar con ese
+
 ```
 
 # *Eleccion de la base de datos para modelar*
-```{r, echo=T}
-db_imp<-complete(base_imputada,5) #elegimos una de las 10 bases imputadas
+```{r eleccion de base imputada, echo=T}
+db_imp<-complete(base_imputada,4) # o tmb podemos elegir una de las 10 bases imputadas y armar el modelo
 str(db_imp)
 vis_miss(db_imp,sort=TRUE)
 
 ```
 
+```{r Graficos,echo=TRUE,fig.show = "hold" }
 
-```{r,echo=T}
-#Modelo
-model1 <- clm(score~age+gender+bmi+prior_incomplete_colonoscopy+ambulatory_hospitalised+preparation+schedule+veda_vcc_conjunta+time_entrance+operators
-              +second_operator_type+boston,
-              data=db_imp, link = "logit")
+p1<-ggplot(data = db_imp, mapping = aes(x=score, y=bmi))+
+  geom_violin(mapping = aes(fill=score))+
+  geom_jitter(size=1, position = position_jitter(width = 0.05))+labs(title = "IMC vs SCORE",y="IMC")+
+  theme(legend.position="none",axis.title = element_text(size=13,face = "bold"),axis.text = element_text(size=13))
+
+p2<-ggplot(db_imp, aes(gender))+
+  geom_bar(aes(fill=score),position="dodge",width=0.7)+labs(title = "Género vs SCORE",x="",y="")+theme(axis.text = element_text(size=13))
+
+p3<-ggplot(db_imp, aes(pain))+
+  geom_bar(aes(fill=score),position="dodge",width=0.7)+labs(title = "Dolor vs SCORE",x="",y="")+theme(axis.text = element_text(size=13))
+
+p4<-ggplot(data = db_imp, mapping = aes(x=score, y=time_entrance))+
+  geom_violin(mapping = aes(fill=score))+
+  geom_jitter(size=1, position = position_jitter(width = 0.05))+labs(title = "Tiempo de entrada vs SCORE",y="")+
+  theme(legend.position="none",axis.title = element_text(size=13,face = "bold"),axis.text = element_text(size=13))
+
+plot_grid(p1,p2,p3,p4)
+```
+
+```{r ordinalforest, echo=TRUE}
+
+set.seed(123)
+
+sample <- sample(1:2111)
+train_db <- sort(sample(1:nrow(db_imp), size=floor(nrow(db_imp)*(2/3))))
+test_db <- setdiff(1:nrow(db_imp), train_db)
+datatrain <- db_imp[train_db,]
+datatest <- db_imp[test_db,]
+# Construct OF prediction rule using the training dataset (default
+# perffunction = "probability" corresponding to the
+# (negative) ranked probability score as performance function):
+
+ordforres <- ordfor(depvar="score", data=datatrain, nsets=1000, ntreeperdiv=100,
+ntreefinal=5000, perffunction = "equal", importance = c("rps", "accuracy"))
+
+sort(ordforres$varimp, decreasing = TRUE)
+
+v<-as.vector(ordforres$varimp)
+w<-(as.vector((colnames(db_imp[,-c(7,18)]))))#sacamos la var de rta y de ef aleatorios
+DF<-cbind(w,v)
+DF<-as.data.frame(DF)
+
+DF<-DF %>% mutate(v=as.numeric(v),
+              w=as.factor(w))
+
+ggplot(DF, aes(x=reorder(w,v), y=v,fill=w))+ 
+  geom_bar(stat="identity", position="dodge")+ coord_flip()+
+  ylab("Variable Importance")+
+  xlab("")+
+  theme(legend.position = "none")
+
+ordforres$forestfinal
+#ECM del ordinal forest 0.26
+```
+
+
+```{r modelo 1 y supuestos,echo=T}
+#Modelo: introducimos una variable de efectos aleatorios:institucion
+
+model1 <- clmm(score~age+gender+bmi+digestive_surgery+prior_incomplete_colonoscopy+hernia+ambulatory_hospitalised+preparation+schedule+veda_vcc_conjunta+time_entrance+first_operator_type+boston+pain+consumption_propofol_mg + (1|institution),data=db_imp, Hess=T)
+
 summary(model1)
 exp(coef(model1))
 exp(confint(model1))
 
+sf <- function(y){
+c('y>=1' = qlogis(mean(y >= 1)),
+'y>=2' = qlogis(mean(y >= 2)),
+'y>=3' = qlogis(mean(y >= 3)),
+'y>=4' = qlogis(mean(y >= 4)),
+'y>=5' = qlogis(mean(y >= 5)))
+}
+
+supuestos_model1 <- with(db_imp,summary(as.numeric(score) ~ age+gender+bmi+digestive_surgery+prior_incomplete_colonoscopy+hernia+ambulatory_hospitalised+preparation+schedule+veda_vcc_conjunta+time_entrance+first_operator_type+boston+pain+consumption_propofol_mg, fun=sf))
+
+supuestos_model1
+
+
+supuestos_model1[, 6] <- supuestos_model1[, 6] - supuestos_model1[, 5]
+supuestos_model1[, 5] <- supuestos_model1[, 5] - supuestos_model1[, 4]
+supuestos_model1[, 4] <- supuestos_model1[, 4] - supuestos_model1[, 3]
+supuestos_model1[, 3] <- supuestos_model1[, 3] - supuestos_model1[, 3]
+supuestos_model1 
+
+plot(supuestos_model1, which=1:5,pch=1:5,xlab='logit', main=' ', xlim=range(supuestos_model1[,3:6],finite=T))
+
+#hace un grafico por variable, otra forma de chequear supuestos
+plot(pomcheck(score~age+gender+bmi+digestive_surgery+prior_incomplete_colonoscopy+ambulatory_hospitalised+preparation+schedule+veda_vcc_conjunta+time_entrance+first_operator_type+boston, data=db_imp[,-7]))
 ```
 
 
-```{r,echo=T}
-#chequeamos los supuestos
+Vemos otro modelo (2) sacando las variables VEDA/vcc conjunta y preparation segun ordinalforest
 
+```{r modelo2 y supuestos, echo=TRUE}
+model2 <- clmm(score~age+gender+bmi+digestive_surgery+prior_incomplete_colonoscopy+hernia+ambulatory_hospitalised+ schedule +time_entrance+first_operator_type+boston+pain+consumption_propofol_mg + (1|institution),data=db_imp, Hess=T )
 
-sf <- function(y){
-c('y>=0' = qlogis(mean(y >= 0)),
-'y>=1' = qlogis(mean(y >= 1)),
+summary(model2)
+exp(confint(model2))
+
+sf2 <- function(y){
+c('y>=1' = qlogis(mean(y >= 1)),
 'y>=2' = qlogis(mean(y >= 2)),
 'y>=3' = qlogis(mean(y >= 3)),
-'y>=4' = qlogis(mean(y >= 4)))
+'y>=4' = qlogis(mean(y >= 4)),
+'y>=5' = qlogis(mean(y >= 5)))
 }
 
 
-ver_supuestos <- with(db_imp,summary(as.numeric(score) ~ age+gender+bmi+prior_incomplete_colonoscopy+ambulatory_hospitalised+preparation+schedule+veda_vcc_conjunta+operators+second_operator_type+boston+time_entrance, fun=sf))
+supuestos_model2 <- with(db_imp,summary(as.numeric(score) ~ age+gender+bmi+digestive_surgery+prior_incomplete_colonoscopy+hernia+ambulatory_hospitalised+schedule+time_entrance+first_operator_type+boston+pain+consumption_propofol_mg, fun=sf2))
 
-ver_supuestos[, 6] <- ver_supuestos[, 6] - ver_supuestos[, 5]
-ver_supuestos[, 5] <- ver_supuestos[, 5] - ver_supuestos[, 4]
-ver_supuestos[, 4] <- ver_supuestos[, 4] - ver_supuestos[, 4]
-ver_supuestos #parece que no cumplen
+supuestos_model2
 
-plot(ver_supuestos, which=4:6, pch=4:6, xlab='logit', main=' ', xlim=range(ver_supuestos[,5:6]))
 
+supuestos_model2[, 6] <- supuestos_model2[, 6] - supuestos_model2[, 5]
+supuestos_model2[, 5] <- supuestos_model2[, 5] - supuestos_model2[, 4]
+supuestos_model2[, 4] <- supuestos_model2[, 4] - supuestos_model2[, 3]
+supuestos_model2[, 3] <- supuestos_model2[, 3] - supuestos_model2[, 3]
+supuestos_model2
+plot(supuestos_model2, which=1:5,pch=1:5,xlab='logit', main=' ', xlim=range(supuestos_model2[,3:6], finite=T))
+```
+
+Modelo (3) sin las variables VEDA/vcc conjunta, preparation, cirugia digestiva
+```{r modelo 3 y supuestos, echo=TRUE,fig.show = "hold"}
+
+model3 <- clmm(score~age+gender+bmi+prior_incomplete_colonoscopy+schedule+first_operator_type+boston+pain+hernia+time_entrance+ambulatory_hospitalised+consumption_propofol_mg+(1|institution),data=db_imp)
+
+summary(model3)
+exp(coef(model3))
+exp(confint(model3))
+
+sf3 <- function(y){
+c('y>=1' = qlogis(mean(y >= 1)),
+'y>=2' = qlogis(mean(y >= 2)),
+'y>=3' = qlogis(mean(y >= 3)),
+'y>=4' = qlogis(mean(y >= 4)),
+'y>=5' = qlogis(mean(y >= 5)))
+}
+
+supuestos_model3 <- with(db_imp,summary(as.numeric(score) ~ age+gender+bmi+prior_incomplete_colonoscopy+ambulatory_hospitalised+schedule+first_operator_type+boston+pain+hernia+time_entrance+consumption_propofol_mg, fun=sf3))
+
+supuestos_model3
+
+supuestos_model3[, 6] <- supuestos_model3[, 6] - supuestos_model3[, 5]
+supuestos_model3[, 5] <- supuestos_model3[, 5] - supuestos_model3[, 4]
+supuestos_model3[, 4] <- supuestos_model3[, 4] - supuestos_model3[, 3]
+supuestos_model3[, 3] <- supuestos_model3[, 3] - supuestos_model3[, 3]
+supuestos_model3
+plot(supuestos_model3, which=1:5,pch=1:5,xlab='logit', main=' ', xlim=range(supuestos_model3[,3:6], finite=TRUE))#
 
 ```
 
+Modelo 4 sin variables VEDA/vcc conjunta, preparation, cirugia digestiva y hernia
+```{r modelo 4}
+model4 <- clmm(score~age+gender+bmi+prior_incomplete_colonoscopy+schedule+first_operator_type+boston+pain+time_entrance+ambulatory_hospitalised+consumption_propofol_mg+(1|institution),data=db_imp)
+
+```
+
+
+```{r comparamos modelo con y sin supuesto de proporcionalidad, echo=TRUE}
+
+# model2c <- clmm2(score~age+gender+bmi+digestive_surgery+prior_incomplete_colonoscopy+hernia+ambulatory_hospitalised+ schedule +time_entrance+first_operator_type+boston+pain+consumption_propofol_mg, random = institution, nominal=~age+gender+bmi+digestive_surgery+prior_incomplete_colonoscopy+hernia+ambulatory_hospitalised+ schedule +time_entrance+first_operator_type+boston+pain+consumption_propofol_mg, data=db_imp, Hess=T)
+# summary(model2c)
+
+#1 - pchisq(2*(logLik(model2c)-logLik(model2_asess)),df=df.residual(model2_asess)-df.residual(model2c))
+#o
+#anova(model2_asess,model2c)#no cumple segun LRT
+
+```
+
+
+```{r seleccion de modelos, echo=TRUE}
+compare_performance(model1,model2,model3,model4)#RMSE 2.20 el error es el mismo, AIC no disminuye demasiado con una variable menos (model3), vuelve a aumentar al sacar mas variables en model 4, continuamos con el modelo2 por ahora
+
+```
+
+```{r Rendimiento del modelo AUC, echo=TRUE,fig.show = "hold"}
+# Predict values of the ordinal target variable in the test dataset:
+preds <- predict(ordforres, newdata=datatest)
+
+perf<-perff_equal(ytest=datatest$score, ytestpred=as.ordered(preds$ypred))
+#estadistico Youden 0.144 en promedio
+
+#matriz de confusion
+caret::confusionMatrix(preds$ypred, datatest$score)
+#accuracy(precision de la clasif en datos de testeo): 0.44
+#AUC del modelo mixto para predecir datos de entrenamiento y armar la curva
+model2_asess <- clmm2(score~age+gender+bmi+digestive_surgery+prior_incomplete_colonoscopy+hernia+ambulatory_hospitalised+ schedule +time_entrance+first_operator_type+boston+pain+consumption_propofol_mg, random=institution,data=db_imp, Hess=T )
+summary(model2_asess)
+exp(coef(model2_asess))
+
+model_predict2 <- predict(model2_asess, newdata=datatest, type="response")
+
+acu2<-multiclass.roc(datatest$score, model_predict2,direction=">", levels=levels(datatest$score),plot=TRUE, print.thres="best", print.auc=T)
+acu2$auc
+
+roc.df2<-data.frame(tpp=acu2$rocs[[10]]$sensitivities*100, ## tpp = true positive percentage
+  tnp=acu2$rocs[[10]]$specificities*100, ## fpp = false positive precentage
+  thresholds=acu2$rocs[[10]]$thresholds)
+
+roc.df2[roc.df2$tpp > 90 & roc.df2$tpp < 95,]#0.027
+
+curva_roc<-ggroc(acu2$rocs[[10]],alpha = 1, colour = "red", linetype = 1, size = 1)+ ggtitle("Gráfico 2. Curva ROC") + labs(x="Especificidad", y="Sensibilidad")+annotate("text", x=0.60,y=0.50,label="AUC=0.95",fontface = "bold",size = 4)+
+  theme(plot.title = element_text(size = 14, face = "bold"),axis.title = element_text(size=13))+annotate("pointrange",x=0.965,y=0.923,ymin = 0.916,ymax = 0.93,colour="black",size=0.5)+annotate("text",x=0.70,y=0.80, label="S:92.3% E:96.7%", fontface = "bold",size = 5)
+
+```
+
+
+```{r veamos auc model3}
+
+model3_asess <- clmm2(score~age+gender+bmi+prior_incomplete_colonoscopy+schedule+first_operator_type+boston+pain+hernia+time_entrance+ambulatory_hospitalised+consumption_propofol_mg, random=institution,data=db_imp, Hess=T )
+summary(model2_asess)
+exp(coef(model3_asess))
+
+model_predict3 <- predict(model3_asess, newdata=datatest, type="probability")
+
+auc3 <- multiclass.roc(datatest$score, model_predict3,direction=">", levels=levels(datatest$score),plot=TRUE, print.thres="best", print.auc=T)#0.95 averange
+auc3$auc# no hay mcuha diferencia
+
+```
+
+Continuamos con el modelo 2
+
+```{r Graficos de predicciones del modelo}
+
+ggpredictions <-data.frame(ggpredict(model2,terms="gender", type="fe"))
+
+ggpredictions$x = factor(ggpredictions$x)
+levels(ggpredictions$x) = c("hombre", "mujer")
+colnames(ggpredictions)[c(1, 6)] =c("genero", "score")
+
+graf1<-ggplot(ggpredictions, aes(x = score, y = predicted, group=genero)) +
+  geom_smooth(aes(colour = genero),span=0.9)+
+  theme_minimal()+
+  ggtitle("Predicciones del modelo")
+
+predictions2<-data.frame(ggpredict(model2,terms="pain", type="fe"))
+
+predictions2$x = factor(predictions2$x)
+levels(predictions2$x) = c("leve", "moderado","severo")
+colnames(predictions2)[c(1,6)] =c("dolor", "score")
+
+graf2<-ggplot(predictions2, aes(x = score, y = predicted, group=dolor))+geom_smooth(aes(colour = dolor),span=0.9)+theme_minimal()
+
+predictions3<-data.frame(ggpredict(model2,terms="schedule", type="fe"))
+
+predictions3$x = factor(predictions3$x)
+levels(predictions3$x) = c("mañana", "tarde")
+colnames(predictions3)[c(1, 6)] =c("jornada", "score")
+
+graf3<-ggplot(predictions3, aes(x = score, y = predicted, group=jornada))+geom_smooth(aes(colour = jornada),span=0.9)+theme_minimal()
+
+predictions4<-data.frame(ggpredict(model2,terms="prior_incomplete_colonoscopy", type="fe"))
+
+predictions4$x = factor(predictions4$x)
+levels(predictions4$x) = c("no", "si")
+colnames(predictions4)[c(1, 6)] =c("VCCincompleta", "score")
+
+
+graf4<-ggplot(predictions4, aes(x = score, y = predicted, group=VCCincompleta))+geom_smooth(aes(colour = VCCincompleta),span=0.9)+theme_minimal()+labs(color="VCC previa incompleta")
+
+
+plot_grid(graf1,graf4,graf3,graf2)
+```
+
 # **Resultados**
+```{r Tablas, echo=TRUE, results="asis",fig.show = "hold"}
+
+mylabels2<-list(age="Edad",gendermujer="Genero[mujer]",bmi="IMC",digestive_surgerysi="Cirugia abdominal",herniasi="Antecedentes de hernia",prior_incomplete_colonoscopysi="Colonoscopia previa incompleta",ambulatory_hospitalisedhospitalizado="Hospitalizado",first_operator_typeexperto="1°operador experto", bostonExcelente="Boston[excelente]",scheduletarde="VCC vespertina",time_entrance="Tiempo de entrada(min)",painmoderado="Dolor[moderado]",painsevero="Dolor[severo]",consumption_propofol_mg="Consumo de propofol(mg)")
+
+
+?tab_model
+tabla_modelo<-tab_model(model2,rm.terms=c("1|2","2|3","3|4","4|5"),title = "Tabla 4. Resultados", auto.label = T,string.pred = "Predictores", string.ci = "IC 95%",dv.labels = "Score ABCD",pred.labels =mylabels2)
+tabla_modelo
+tbl_regression(model2, exponentiate=T)
+summary(model2)
+exp(coef(model2))
+```
+
+```{r Grafico OR, echo=TRUE}
+
+or<-odds_plot(model2,title = "Gráfico 1. Estimadores modelo de regresion ordinal",
+              subtitle = "Factores asociados a VCC dificultosa",
+              error_bar_width = 1,
+              point_size = 2,
+              point_col = "red",
+              error_bar_colour = "blue", x_label = "",h_line_color = "black")
+?odds_plot
+or$odds_data<-or$odds_data[-c(1,2,3),]
+or$odds_plot$data<-or$odds_plot$data[-c(1,2,3),]
+
+or_plot<-or$odds_plot+
+  scale_x_discrete(expand=c(0.15,0.15),labels=c("prior_incomplete_colonoscopysi"="Colonoscopia previa incompleta",
+"painmoderado" = "Dolor moderado","painsevero"="Dolor severo",
+"gendermujer"="Mujer",
+"herniasi"="Hernia","scheduletarde"="VCC vespertina","digestive_surgerysi"="Cirugia digestiva","time_entrance"="Tiempo de entrada","age"="Edad","consumption_propofol_mg"="Consumo de propofol(mg)","bmi"="IMC","ambulatory_hospitalisedhospitalizado"="Hospitalizado","bostonExcelente"="Boston Excelente","first_operator_typeexperto"="1°operador experto"))+theme(axis.text = element_text(size=14,face="bold", colour="black"),plot.title = element_text(size = 14, face = "bold"), plot.subtitle =element_text(size = 14), axis.title =element_text(size=12))
+  
+```
+
